@@ -6,4 +6,4 @@ MONGO_DB = {
     "PASSWORD": "2ZG6wsl,):ip2TUG",
 }
 
-RECORD_LOG = False
+RECORD_LOG = True
