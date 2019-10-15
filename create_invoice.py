@@ -59,17 +59,18 @@ class CreateInvoice():
             return None
 
 
-    def freeTrial(self, startDate, endDate):
+    def freeTrial(self, startDate, endDate, activeOnly=True):
         Log.debug("freeTrial() : {0} - {1}".format(startDate, endDate))
 
         userList = self.getUserList("Free trial")
         Log.info("{0} user(s) found".format(len(userList)))
         
         for user in userList:
-            self.createUserInvoice(user.id, int(startDate.strftime("%Y%m")), 0.0)
+            if (not activeOnly) or (activeOnly and user.isActive == True):
+                self.createUserInvoice(user.id, int(startDate.strftime("%Y%m")), 0.0)
 
 
-    def monthly(self, startDate, endDate):
+    def monthly(self, startDate, endDate, activeOnly=True):
         Log.debug("monthly() : {0} - {1}".format(startDate, endDate))
 
         price =self.findPrice("Monthly", startDate)
@@ -79,10 +80,11 @@ class CreateInvoice():
         Log.info("{0} user(s) found".format(len(userList)))
         
         for user in userList:
-            self.createUserInvoice(user.id, int(startDate.strftime("%Y%m")), price)
+            if (not activeOnly) or (activeOnly and user.isActive == True):
+                self.createUserInvoice(user.id, int(startDate.strftime("%Y%m")), price)
         
 
-    def metered(self, startDate, endDate):
+    def metered(self, startDate, endDate, activeOnly=True):
         Log.debug("metered() : {0} - {1}".format(startDate, endDate))
 
         price =self.findPrice("Metered", startDate)
@@ -92,9 +94,10 @@ class CreateInvoice():
         Log.info("{0} user(s) found".format(len(userList)))        
         
         for user in userList:
-            count = ApiUsageCount.objects(userId = user.id, date__gte = startDate, date__lte = endDate).sum("count")
-            Log.info("user:{0}, count:{1}".format(user.id, count))
-            self.createUserInvoice(user.id, int(startDate.strftime("%Y%m")), price * count)
+            if (not activeOnly) or (activeOnly and user.isActive == True):
+                count = ApiUsageCount.objects(userId = user.id, date__gte = startDate, date__lte = endDate).sum("count")
+                Log.info("user:{0}, count:{1}".format(user.id, count))
+                self.createUserInvoice(user.id, int(startDate.strftime("%Y%m")), price * count)
 
         
     def createLastMonth(self):
@@ -123,6 +126,6 @@ if __name__ == '__main__':
     #     next_month = first_day_of_month + relativedelta(months=+1)
     #     last_day_of_month = next_month - timedelta(days=1)
 
-    #     invoice.freeTrial(first_day_of_month, last_day_of_month)
-    #     invoice.monthly(first_day_of_month, last_day_of_month)
-    #     invoice.metered(first_day_of_month, last_day_of_month)
+    #     invoice.freeTrial(first_day_of_month, last_day_of_month, False)
+    #     invoice.monthly(first_day_of_month, last_day_of_month, False)
+    #     invoice.metered(first_day_of_month, last_day_of_month, False)
